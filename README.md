@@ -69,21 +69,6 @@ Dashboard (index.html)
 
 ## 🚀 Quick Start
 
-### Option A — No MQTT Broker (HTTP-only, simplest)
-
-```bash
-# Terminal 1 — Backend
-npm install
-node backend/server.js
-
-# Terminal 2 — Edge Simulator (auto-switches to HTTP mode)
-pip install -r requirements.txt
-python3 edge/simulator.py
-
-# Open dashboard
-open http://localhost:3000
-```
-
 ### Option B — Full MQTT Stack (recommended)
 
 ```bash
