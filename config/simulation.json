@@ -22,7 +22,7 @@
     },
     "air_quality": {
       "min": 0,
-      "max": 500,
+      "max": 200,
       "unit": "AQI"
     },
     "light": {
