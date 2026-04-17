@@ -1,0 +1,3 @@
+# IoT Simulation Platform — Python Dependencies
+# Edge Layer (sensor simulation + MQTT)
+paho-mqtt>=1.6.1

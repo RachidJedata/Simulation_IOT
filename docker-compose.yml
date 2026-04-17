@@ -1,0 +1,64 @@
+version: "3.9"
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║   IoT Simulation Platform — Docker Compose              ║
+# ║   Full stack: MQTT Broker + Backend + Edge Simulator    ║
+# ╚══════════════════════════════════════════════════════════╝
+#
+# Usage:
+#   docker compose up
+#   Then open: http://localhost:3000
+
+services:
+
+  # ── MQTT Broker (Eclipse Mosquitto) ──────────────────────
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: iot-mqtt-broker
+    ports:
+      - "1883:1883"   # MQTT
+      - "9001:9001"   # WebSocket (optional)
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── Backend Server (Node.js) ──────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: iot-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config
+      - ./dashboard:/app/dashboard
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      mqtt-broker:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Edge Simulator (Python) ───────────────────────────────
+  edge-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.edge
+    container_name: iot-edge
+    volumes:
+      - ./config:/app/config
+    environment:
+      - MQTT_BROKER=mqtt-broker
+    depends_on:
+      - mqtt-broker
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mosquitto_data:

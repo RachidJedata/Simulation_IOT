@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Simulation Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --white: #ffffff;
+      --gray-50: #f8f9fb;
+      --gray-100: #f1f3f7;
+      --gray-200: #e4e8f0;
+      --gray-300: #cdd4e0;
+      --gray-400: #9aa5b8;
+      --gray-500: #6b7a96;
+      --gray-600: #4a5568;
+      --gray-700: #2d3748;
+      --gray-800: #1a202c;
+      --blue-50: #eff6ff;
+      --blue-100: #dbeafe;
+      --blue-200: #bfdbfe;
+      --blue-500: #3b82f6;
+      --blue-600: #2563eb;
+      --blue-700: #1d4ed8;
+      --green-50: #f0fdf4;
+      --green-100: #dcfce7;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --amber-50: #fffbeb;
+      --amber-100: #fef3c7;
+      --amber-500: #f59e0b;
+      --amber-600: #d97706;
+      --amber-700: #b45309;
+      --red-50: #fef2f2;
+      --red-100: #fee2e2;
+      --red-500: #ef4444;
+      --red-600: #dc2626;
+      --red-700: #b91c1c;
+      --purple-50: #faf5ff;
+      --purple-500: #a855f7;
+      --purple-600: #9333ea;
+      --bg-app: var(--gray-50);
+      --bg-surface: var(--white);
+      --border-light: var(--gray-200);
+      --text-primary: var(--gray-800);
+      --text-secondary: var(--gray-600);
+      --text-muted: var(--gray-400);
+      --text-label: var(--gray-500);
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --r-sm: 6px;
+      --r-md: 10px;
+      --r-lg: 14px;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: var(--bg-app);
+      overflow: hidden
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gray-300);
+      border-radius: 99px
+    }
+
+    /* ── SHELL ───────────────────────────────────────── */
+    .shell {
+      display: grid;
+      grid-template-rows: 56px 1fr;
+      height: 100vh
+    }
+
+    .body-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr 280px;
+      overflow: hidden
+    }
+
+    /* ── TOPBAR ──────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      z-index: 50
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--blue-600);
+      border-radius: var(--r-sm);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0
+    }
+
+    .brand-logo svg {
+      width: 18px;
+      height: 18px
+    }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.3px
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid
+    }
+
+    .pill.connected {
+      background: var(--green-50);
+      border-color: var(--green-100);
+      color: var(--green-700)
+    }
+
+    .pill.disconnected {
+      background: var(--red-50);
+      border-color: var(--red-100);
+      color: var(--red-700)
+    }
+
+    .pill.connecting {
+      background: var(--amber-50);
+      border-color: var(--amber-100);
+      color: var(--amber-700)
+    }
+
+    .pill.mqtt {
+      background: var(--blue-50);
+      border-color: var(--blue-100);
+      color: var(--blue-700)
+    }
+
+    .pdot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s ease-in-out infinite
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.85)
+      }
+    }
+
+    .topbar-clock {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--gray-100);
+      padding: 5px 10px;
+      border-radius: var(--r-sm);
+      letter-spacing: .5px
+    }
+
+    /* ── SIDEBARS ────────────────────────────────────── */
+    .sidebar {
+      background: var(--white);
+      border-right: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden
+    }
+
+    .sidebar-right {
+      border-right: none;
+      border-left: 1px solid var(--border-light)
+    }
+
+    .panel-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .6px
+    }
+
+    .cbadge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: var(--blue-50);
+      color: var(--blue-600);
+      border: 1px solid var(--blue-100);
+      font-family: var(--font-mono)
+    }
+
+    .cbadge.amber {
+      background: var(--amber-50);
+      color: var(--amber-700);
+      border-color: var(--amber-100)
+    }
+
+    /* ── DEVICE LIST ─────────────────────────────────── */
+    .dev-scroll {
+      overflow-y: auto;
+      flex: 1;
+      padding: 10px
+    }
+
+    .dev-card {
+      background: var(--gray-50);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r-md);
+      padding: 11px 13px;
+      margin-bottom: 7px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .dev-card:hover {
+      background: var(--white);
+      border-color: var(--gray-300);
+      box-shadow: var(--shadow-sm)
+    }
+
+    .dev-card.active {
+      background: var(--blue-50);
+      border-color: var(--blue-500);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .1)
+    }
+
+    .dev-card.has-alert {
+      border-color: var(--amber-500);
+      background: var(--amber-50)
+    }
+
+    .dev-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px
+    }
+
+    .dev-name {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .3px
+    }
+
+    .online-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green-500);
+      box-shadow: 0 0 0 2px var(--green-100);
+      animation: pulse 2.5s ease-in-out infinite
+    }
+
+    .dev-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px
+    }
+
+    .rc {
+      display: flex;
+      flex-direction: column;
+      gap: 1px
+    }
+
+    .rlbl {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
+    .rval {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary)
+    }
+
+    .dev-gps {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid var(--border-light);
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono)
+    }
+
+    .empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted)
+    }
+
+    .empty .ei {
+      font-size: 28px;
+      margin-bottom: 8px
+    }
+
+    .empty p {
+      font-size: 12px;
+      line-height: 1.7
+    }
+
+    /* ── MAIN ────────────────────────────────────────── */
+    .main-content {
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px
+    }
+
+    /* ── KPI CARDS ───────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px
+    }
+
+    .kpi-card {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: var(--r-lg) var(--r-lg) 0 0
+    }
+
+    .kpi-card.blue::before {
+      background: var(--blue-500)
+    }
+
+    .kpi-card.green::before {
+      background: var(--green-500)
+    }
+
+    .kpi-card.amber::before {
+      background: var(--amber-500)
+    }
+
+    .kpi-card.red::before {
+      background: var(--red-500)
+    }
+
+    .kpi-icon-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px
+    }
+
+    .kpi-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--r-sm);
+      display: grid;
+      place-items: center;
+      font-size: 16px
+    }
+
+    .kpi-icon.blue {
+      background: var(--blue-50)
+    }
+
+    .kpi-icon.green {
+      background: var(--green-50)
+    }
+
+    .kpi-icon.amber {
+      background: var(--amber-50)
+    }
+
+    .kpi-icon.red {
+      background: var(--red-50)
+    }
+
+    .kpi-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-label);
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .kpi-val {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.1;
+      letter-spacing: -.5px
+    }
+
+    .kpi-val .ku {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-left: 2px
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px
+    }
+
+    /* ── SECTION CARD ────────────────────────────────── */
+    .sc {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden
+    }
+
+    .card-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border-light);
+      background: var(--gray-50)
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .live-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--green-600);
+      background: var(--green-50);
+      border: 1px solid var(--green-100);
+      padding: 2px 7px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    /* ── GAUGE GRID ──────────────────────────────────── */
+    .gauge-grid {
+      display: flex
+    }
+
+    .gauge-item {
+      flex: 1;
+      padding: 14px 16px;
+      border-right: 1px solid var(--border-light)
+    }
+
+    .gauge-item:last-child {
+      border-right: none
+    }
+
+    .gauge-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-label);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      margin-bottom: 6px
+    }
+
+    .gauge-num {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 8px
+    }
+
+    .gauge-num .gu {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-left: 2px
+    }
+
+    .gauge-track {
+      height: 5px;
+      background: var(--gray-100);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 6px
+    }
+
+    .gauge-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .8s ease, background-color .3s
+    }
+
+    .gauge-tag {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 1px 6px;
+      border-radius: 99px;
+      display: inline-block
+    }
+
+    .gauge-tag.normal {
+      background: var(--green-50);
+      color: var(--green-700)
+    }
+
+    .gauge-tag.warning {
+      background: var(--amber-50);
+      color: var(--amber-700)
+    }
+
+    .gauge-tag.danger {
+      background: var(--red-50);
+      color: var(--red-700)
+    }
+
+    .waiting {
+      padding: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center
+    }
+
+    /* ── CHARTS ──────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px
+    }
+
+    .chart-body {
+      padding: 14px;
+      height: 190px;
+      position: relative
+    }
+
+    .win-btns {
+      display: flex;
+      gap: 4px
+    }
+
+    .win-btn {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid var(--gray-300);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all .12s;
+      font-family: var(--font-mono)
+    }
+
+    .win-btn:hover,
+    .win-btn.active {
+      background: var(--blue-500);
+      border-color: var(--blue-500);
+      color: var(--white)
+    }
+
+    /* ── GPS MAP ─────────────────────────────────────── */
+    .map-body {
+      height: 200px;
+      position: relative;
+      background: linear-gradient(rgba(248, 249, 251, .95), rgba(248, 249, 251, .95)), repeating-linear-gradient(0deg, transparent, transparent 24px, var(--gray-200) 25px), repeating-linear-gradient(90deg, transparent, transparent 24px, var(--gray-200) 25px);
+      overflow: hidden
+    }
+
+    #gpsCanvas {
+      width: 100%;
+      height: 100%
+    }
+
+    /* ── TELECOM ─────────────────────────────────────── */
+    .tc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr)
+    }
+
+    .tc-cell {
+      padding: 14px 16px;
+      border-right: 1px solid var(--border-light);
+      text-align: center
+    }
+
+    .tc-cell:last-child {
+      border-right: none
+    }
+
+    .tc-lbl {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px
+    }
+
+    .tc-val {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--blue-600);
+      line-height: 1;
+      margin-bottom: 6px
+    }
+
+    .tc-track {
+      height: 4px;
+      background: var(--gray-100);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    .tc-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .5s ease
+    }
+
+    /* ── LOG ─────────────────────────────────────────── */
+    .log-body {
+      height: 110px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--gray-50)
+    }
+
+    .ll {
+      padding: 1.5px 0;
+      line-height: 1.6;
+      color: var(--text-secondary)
+    }
+
+    .ll.ok {
+      color: var(--green-600)
+    }
+
+    .ll.warn {
+      color: var(--amber-600)
+    }
+
+    .ll.error {
+      color: var(--red-600)
+    }
+
+    .clear-btn {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--gray-300);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all .12s
+    }
+
+    .clear-btn:hover {
+      background: var(--gray-100)
+    }
+
+    /* ── ALERTS (right sidebar) ──────────────────────── */
+    .alert-scroll {
+      overflow-y: auto;
+      flex: 1;
+      padding: 10px
+    }
+
+    .alert-card {
+      border-radius: var(--r-md);
+      padding: 10px 12px;
+      margin-bottom: 7px;
+      border: 1px solid;
+      border-left: 4px solid;
+      animation: slideIn .25s ease
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0)
+      }
+    }
+
+    .alert-card.HIGH {
+      background: var(--red-50);
+      border-color: var(--red-100);
+      border-left-color: var(--red-500)
+    }
+
+    .alert-card.MEDIUM {
+      background: var(--amber-50);
+      border-color: var(--amber-100);
+      border-left-color: var(--amber-500)
+    }
+
+    .alert-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px
+    }
+
+    .alert-sev {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase
+    }
+
+    .alert-sev.HIGH {
+      color: var(--red-600)
+    }
+
+    .alert-sev.MEDIUM {
+      color: var(--amber-600)
+    }
+
+    .alert-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted)
+    }
+
+    .alert-dev {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 2px
+    }
+
+    .alert-msg {
+      font-size: 12px;
+      color: var(--text-primary)
+    }
+
+    .no-alerts {
+      text-align: center;
+      padding: 28px 14px;
+      color: var(--text-muted);
+      font-size: 12px
+    }
+
+    .no-alerts .ni {
+      font-size: 24px;
+      margin-bottom: 6px
+    }
+
+    /* ── CONFIG (right sidebar) ──────────────────────── */
+    .divider-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 10px 14px 6px;
+      border-top: 1px solid var(--border-light);
+      flex-shrink: 0
+    }
+
+    .cfg-section {
+      padding: 10px 14px;
+      flex-shrink: 0
+    }
+
+    .cfg-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px
+    }
+
+    .cfg-row:last-child {
+      margin-bottom: 0
+    }
+
+    .cfg-lbl {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary)
+    }
+
+    .cfg-right {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    input[type=range].rs {
+      -webkit-appearance: none;
+      width: 90px;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--gray-200);
+      outline: none;
+      cursor: pointer
+    }
+
+    input[type=range].rs::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--blue-500);
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .2)
+    }
+
+    .rv {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--blue-600);
+      min-width: 34px;
+      text-align: right
+    }
+
+    .scen-section {
+      padding: 8px 14px 0;
+      flex-shrink: 0;
+      border-top: 1px solid var(--border-light)
+    }
+
+    .scen-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 10px
+    }
+
+    .scen-btn {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 11px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-light);
+      background: var(--gray-50);
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: left;
+      transition: all .12s;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .scen-btn:hover {
+      background: var(--blue-50);
+      border-color: var(--blue-200);
+      color: var(--blue-700)
+    }
+
+    .scen-btn.active {
+      background: var(--blue-500);
+      border-color: var(--blue-500);
+      color: var(--white)
+    }
+
+    .apply-btn {
+      width: 100%;
+      padding: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--r-sm);
+      border: none;
+      background: var(--blue-600);
+      color: var(--white);
+      cursor: pointer;
+      transition: background .15s;
+      letter-spacing: .3px
+    }
+
+    .apply-btn:hover {
+      background: var(--blue-700)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+            <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">IoT Simulation Platform</div>
+          <div class="brand-sub">Real-time sensor monitoring &amp; telemetry dashboard</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="pill connecting" id="connStatus"><span class="pdot"></span><span
+            id="connLabel">Connecting…</span></span>
+        <span class="pill mqtt"><span class="pdot"></span>MQTT</span>
+        <div class="topbar-clock" id="clock">00:00:00</div>
+      </div>
+    </header>
+
+    <div class="body-grid">
+
+      <!-- LEFT SIDEBAR — Device List -->
+      <aside class="sidebar">
+        <div class="panel-hdr">
+          <span class="panel-title">Connected Devices</span>
+          <span class="cbadge" id="devBadge">0 online</span>
+        </div>
+        <div class="dev-scroll" id="devList">
+          <div class="empty">
+            <div class="ei">📡</div>
+            <p>No devices yet.<br />Start the Python simulator<br />to see devices appear here.</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+
+        <!-- KPI Row -->
+        <div class="kpi-row">
+          <div class="kpi-card blue">
+            <div class="kpi-icon-row">
+              <div class="kpi-icon blue">🌡️</div>
+            </div>
+            <div class="kpi-lbl">Average Temperature</div>
+            <div class="kpi-val" id="kpiT">--<span class="ku">°C</span></div>
+            <div class="kpi-sub">Across all active devices</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-icon-row">
+              <div class="kpi-icon green">💧</div>
+            </div>
+            <div class="kpi-lbl">Average Humidity</div>
+            <div class="kpi-val" id="kpiH">--<span class="ku">%</span></div>
+            <div class="kpi-sub">Across all active devices</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-icon-row">
+              <div class="kpi-icon amber">📟</div>
+            </div>
+            <div class="kpi-lbl">Active Devices</div>
+            <div class="kpi-val" id="kpiD">0</div>
+            <div class="kpi-sub" id="kpiScen">Smart City mode</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-icon-row">
+              <div class="kpi-icon red">⚠️</div>
+            </div>
+            <div class="kpi-lbl">Active Alerts</div>
+            <div class="kpi-val" id="kpiA">0</div>
+            <div class="kpi-sub">Threshold violations</div>
+          </div>
+        </div>
+
+        <!-- Live Gauges -->
+        <div class="sc">
+          <div class="card-hdr">
+            <span class="card-title">📊 Live Sensor Readings</span>
+            <span id="focusDev" style="font-size:11px;color:var(--text-muted)">Showing all devices average</span>
+            <span class="live-tag"><span class="pdot"></span>Live</span>
+          </div>
+          <div id="gaugeGrid">
+            <div class="waiting">Waiting for sensor data — start the Python simulator…</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="two-col">
+          <div class="sc">
+            <div class="card-hdr">
+              <span class="card-title">📈 Temperature History</span>
+              <div class="win-btns">
+                <button class="win-btn active" onclick="setW('temp',30,this)">30</button>
+                <button class="win-btn" onclick="setW('temp',60,this)">60</button>
+                <button class="win-btn" onclick="setW('temp',100,this)">All</button>
+              </div>
+            </div>
+            <div class="chart-body"><canvas id="tChart" role="img" aria-label="Temperature over time"></canvas></div>
+          </div>
+          <div class="sc">
+            <div class="card-hdr">
+              <span class="card-title">💧 Humidity History</span>
+              <div class="win-btns">
+                <button class="win-btn active" onclick="setW('hum',30,this)">30</button>
+                <button class="win-btn" onclick="setW('hum',60,this)">60</button>
+                <button class="win-btn" onclick="setW('hum',100,this)">All</button>
+              </div>
+            </div>
+            <div class="chart-body"><canvas id="hChart" role="img" aria-label="Humidity over time"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Multi-sensor bar -->
+        <div class="sc">
+          <div class="card-hdr"><span class="card-title">📉 All Sensors — Latest Reading Per Device</span></div>
+          <div class="chart-body" style="height:170px"><canvas id="mChart" role="img"
+              aria-label="Multi-sensor bar chart"></canvas></div>
+        </div>
+
+        <!-- GPS Map -->
+        <div class="sc">
+          <div class="card-hdr">
+            <span class="card-title">🗺️ Device GPS Positions</span>
+            <span class="live-tag"><span class="pdot"></span>Moving</span>
+          </div>
+          <div class="map-body"><canvas id="gpsCanvas"></canvas></div>
+        </div>
+
+        <!-- Telecom -->
+        <div class="sc">
+          <div class="card-hdr">
+            <span class="card-title">📡 Wireless / Telecom Layer</span>
+            <span style="font-size:11px;color:var(--text-muted)">Simulated network conditions (latency, jitter, packet
+              loss)</span>
+          </div>
+          <div class="tc-grid">
+            <div class="tc-cell">
+              <div class="tc-lbl">Latency</div>
+              <div class="tc-val" id="tcL">20<span style="font-size:12px;color:var(--text-muted);font-weight:400">
+                  ms</span></div>
+              <div class="tc-track">
+                <div class="tc-fill" id="tcLB" style="width:10%;background:var(--green-500)"></div>
+              </div>
+            </div>
+            <div class="tc-cell">
+              <div class="tc-lbl">Packet Loss</div>
+              <div class="tc-val" id="tcLs">3<span style="font-size:12px;color:var(--text-muted);font-weight:400">
+                  %</span></div>
+              <div class="tc-track">
+                <div class="tc-fill" id="tcLsB" style="width:3%;background:var(--amber-500)"></div>
+              </div>
+            </div>
+            <div class="tc-cell">
+              <div class="tc-lbl">Packets Sent</div>
+              <div class="tc-val" id="tcS">0</div>
+              <div class="tc-track">
+                <div class="tc-fill" id="tcSB" style="width:0%;background:var(--blue-500)"></div>
+              </div>
+            </div>
+            <div class="tc-cell">
+              <div class="tc-lbl">Jitter</div>
+              <div class="tc-val" id="tcJ">15<span style="font-size:12px;color:var(--text-muted);font-weight:400">
+                  ms</span></div>
+              <div class="tc-track">
+                <div class="tc-fill" id="tcJB" style="width:15%;background:var(--purple-500)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="sc">
+          <div class="card-hdr">
+            <span class="card-title">📋 Network Event Log</span>
+            <button class="clear-btn" onclick="clearLog()">Clear</button>
+          </div>
+          <div class="log-body" id="logBody">
+            <div class="ll">System initialised. Connecting to backend at localhost:3000…</div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- RIGHT SIDEBAR — Alerts + Config -->
+      <aside class="sidebar sidebar-right">
+        <div class="panel-hdr">
+          <span class="panel-title">Alerts</span>
+          <span class="cbadge amber" id="alertBadge">0</span>
+        </div>
+        <div class="alert-scroll" id="alertList">
+          <div class="no-alerts">
+            <div class="ni">✅</div>All systems nominal.<br />No threshold violations.
+          </div>
+        </div>
+
+        <div class="divider-lbl">Scenario Mode</div>
+        <div class="scen-section">
+          <div class="scen-grid">
+            <button class="scen-btn" id="sc_smart_home" onclick="setScen('smart_home',this)">🏠 Smart Home</button>
+            <button class="scen-btn active" id="sc_smart_city" onclick="setScen('smart_city',this)">🌆 Smart
+              City</button>
+            <button class="scen-btn" id="sc_industrial_iot" onclick="setScen('industrial_iot',this)">🏭 Industrial
+              IoT</button>
+          </div>
+        </div>
+
+        <div class="divider-lbl">Live Configuration</div>
+        <div class="cfg-section">
+          <div class="cfg-row">
+            <span class="cfg-lbl">Update interval</span>
+            <div class="cfg-right"><input type="range" class="rs" id="cfgI" min="1" max="10" step=".5" value="2"
+                oninput="document.getElementById('cfgIV').textContent=this.value+'s'" /><span class="rv"
+                id="cfgIV">2s</span></div>
+          </div>
+          <div class="cfg-row">
+            <span class="cfg-lbl">Noise level</span>
+            <div class="cfg-right"><input type="range" class="rs" id="cfgN" min="0" max="2" step=".1" value="0.5"
+                oninput="document.getElementById('cfgNV').textContent=this.value" /><span class="rv"
+                id="cfgNV">0.5</span></div>
+          </div>
+          <div class="cfg-row">
+            <span class="cfg-lbl">Max temperature</span>
+            <div class="cfg-right"><input type="range" class="rs" id="cfgTM" min="20" max="60" step="1" value="38"
+                oninput="document.getElementById('cfgTMV').textContent=this.value+'°C'" /><span class="rv"
+                id="cfgTMV">38°C</span></div>
+          </div>
+          <div class="cfg-row">
+            <span class="cfg-lbl">Max humidity</span>
+            <div class="cfg-right"><input type="range" class="rs" id="cfgHM" min="40" max="100" step="1" value="80"
+                oninput="document.getElementById('cfgHMV').textContent=this.value+'%'" /><span class="rv"
+                id="cfgHMV">80%</span></div>
+          </div>
+        </div>
+        <div style="padding:0 14px 14px"><button class="apply-btn" onclick="applyConfig()">Apply Configuration</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+    const API = "http://localhost:3000", POLL_MS = 2500, MAX_H = 60;
+    const S = { devices: {}, history: {}, alerts: [], gpsPos: {}, focusId: null, scenario: "smart_city", msgCount: 0, connected: false, wins: { temp: 30, hum: 30 } };
+    const PAL = [{ s: "#3b82f6", f: "rgba(59,130,246,.12)" }, { s: "#22c55e", f: "rgba(34,197,94,.12)" }, { s: "#f59e0b", f: "rgba(245,158,11,.12)" }, { s: "#ef4444", f: "rgba(239,68,68,.12)" }, { s: "#a855f7", f: "rgba(168,85,247,.12)" }, { s: "#06b6d4", f: "rgba(6,182,212,.12)" }, { s: "#f97316", f: "rgba(249,115,22,.12)" }, { s: "#84cc16", f: "rgba(132,204,22,.12)" }];
+    const pal = i => PAL[i % PAL.length];
+    const SM = { temperature: { l: "Temperature", u: "°C", icon: "🌡️", max: 50, warn: 32, danger: 40, col: "#f59e0b" }, humidity: { l: "Humidity", u: "%", icon: "💧", max: 100, warn: 75, danger: 90, col: "#3b82f6" }, pressure: { l: "Pressure", u: "hPa", icon: "🔵", max: 1030, warn: 1020, danger: 1025, col: "#a855f7" }, air_quality: { l: "Air Quality", u: "AQI", icon: "💨", max: 500, warn: 150, danger: 300, col: "#ef4444" }, light: { l: "Light", u: "lux", icon: "☀️", max: 1000, warn: 800, danger: 950, col: "#f97316" }, vibration: { l: "Vibration", u: "m/s²", icon: "📳", max: 10, warn: 7, danger: 9, col: "#22c55e" } };
+    function st(n, v) { const m = SM[n]; if (!m) return "normal"; return v >= m.danger ? "danger" : v >= m.warn ? "warning" : "normal" }
+    function sc(n, v) { const s = st(n, v); return s === "danger" ? "#ef4444" : s === "warning" ? "#f59e0b" : (SM[n]?.col || "#3b82f6") }
+    // Charts
+    Chart.defaults.font.family = "'Inter',system-ui,sans-serif"; Chart.defaults.color = "#9aa5b8";
+    const SO = { responsive: true, maintainAspectRatio: false, animation: { duration: 350 }, plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false, backgroundColor: "#1a202c", titleFont: { family: "JetBrains Mono", size: 11 }, bodyFont: { family: "JetBrains Mono", size: 11 }, padding: 8, cornerRadius: 6 } }, scales: { x: { grid: { color: "#f1f3f7" }, ticks: { maxTicksLimit: 6, font: { size: 10 } } }, y: { grid: { color: "#f1f3f7" }, ticks: { font: { size: 10 } } } } };
+    const tC = new Chart(document.getElementById("tChart"), { type: "line", data: { labels: [], datasets: [] }, options: { ...SO } });
+    const hC = new Chart(document.getElementById("hChart"), { type: "line", data: { labels: [], datasets: [] }, options: { ...SO } });
+    const mC = new Chart(document.getElementById("mChart"), { type: "bar", data: { labels: [], datasets: [] }, options: { ...SO, plugins: { ...SO.plugins, legend: { display: true, position: "bottom", labels: { font: { size: 11 }, boxWidth: 10, padding: 14 } } }, scales: { ...SO.scales, y: { ...SO.scales.y, beginAtZero: true } } } });
+    // GPS
+    const gpsCv = document.getElementById("gpsCanvas"), gpsX = gpsCv.getContext("2d");
+    function resizeGps() { gpsCv.width = gpsCv.parentElement.clientWidth; gpsCv.height = gpsCv.parentElement.clientHeight }
+    resizeGps(); window.addEventListener("resize", resizeGps);
+    function drawGps() {
+      const W = gpsCv.width, H = gpsCv.height; gpsX.clearRect(0, 0, W, H);
+      const pts = Object.values(S.gpsPos); if (!pts.length) return;
+      const lats = pts.map(p => p.lat), lons = pts.map(p => p.lon), pad = 0.003;
+      const minLat = Math.min(...lats) - pad, maxLat = Math.max(...lats) + pad;
+      const minLon = Math.min(...lons) - pad, maxLon = Math.max(...lons) + pad;
+      const tx = lon => ((lon - minLon) / (maxLon - minLon)) * W;
+      const ty = lat => H - ((lat - minLat) / (maxLat - minLat)) * H;
+      pts.forEach((pos, i) => {
+        const c = pal(i).s;
+        if (pos.trail && pos.trail.length > 1) { gpsX.beginPath(); gpsX.strokeStyle = c + "33"; gpsX.lineWidth = 1.5; pos.trail.forEach((pt, ti) => { const x = tx(pt.lon), y = ty(pt.lat); ti === 0 ? gpsX.moveTo(x, y) : gpsX.lineTo(x, y) }); gpsX.stroke() }
+        const x = tx(pos.lon), y = ty(pos.lat);
+        gpsX.beginPath(); gpsX.arc(x, y, 6, 0, Math.PI * 2); gpsX.fillStyle = c; gpsX.fill();
+        gpsX.beginPath(); gpsX.arc(x, y, 9, 0, Math.PI * 2); gpsX.strokeStyle = c + "44"; gpsX.lineWidth = 2; gpsX.stroke();
+        gpsX.fillStyle = "#4a5568"; gpsX.font = "600 10px Inter"; gpsX.fillText(pos.id.slice(-6), x + 12, y + 4);
+      });
+    }
+    // Ingest
+    function ingest(d, i) {
+      const id = d.device_id; S.devices[id] = d; S.msgCount++;
+      if (!S.gpsPos[id]) S.gpsPos[id] = { trail: [] };
+      const g = S.gpsPos[id]; g.lat = d.gps?.lat; g.lon = d.gps?.lon; g.id = id;
+      if (g.lat) { g.trail.push({ lat: g.lat, lon: g.lon }); if (g.trail.length > 50) g.trail.shift() }
+      if (!S.history[id]) S.history[id] = [];
+      if (d.readings) { S.history[id].push({ ...d.readings, ts: new Date() }); if (S.history[id].length > MAX_H) S.history[id].shift() }
+    }
+    // Render all
+    function render() { renderKPI(); renderDevList(); renderGauges(); renderCharts(); renderAlerts(); renderTelecom(); drawGps() }
+    function renderKPI() {
+      const devs = Object.values(S.devices);
+      const avg = k => { const v = devs.map(d => d.readings?.[k]).filter(x => typeof x === "number"); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : "--" };
+      document.getElementById("kpiT").innerHTML = avg("temperature") + '<span class="ku">°C</span>';
+      document.getElementById("kpiH").innerHTML = avg("humidity") + '<span class="ku">%</span>';
+      document.getElementById("kpiD").textContent = devs.length;
+      document.getElementById("kpiA").textContent = S.alerts.length;
+      document.getElementById("kpiScen").textContent = S.scenario.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) + " mode";
+      document.getElementById("devBadge").textContent = devs.length + " online";
+      document.getElementById("alertBadge").textContent = S.alerts.length;
+    }
+    function renderDevList() {
+      const ids = Object.keys(S.devices), el = document.getElementById("devList");
+      if (!ids.length) { el.innerHTML = '<div class="empty"><div class="ei">📡</div><p>No devices yet.<br/>Start the Python simulator.</p></div>'; return }
+      el.innerHTML = ids.map((id, i) => {
+        const d = S.devices[id], r = d.readings || {}, c = pal(i).s, hasA = d.alerts > 0, act = S.focusId === id;
+        const cells = Object.entries(r).slice(0, 4).map(([k, v]) => `<div class="rc"><span class="rlbl">${k.replace("_", " ").slice(0, 6)}</span><span class="rval" style="color:${sc(k, v)}">${typeof v === "number" ? v.toFixed(1) : v}</span></div>`).join("");
+        return `<div class="dev-card${act ? " active" : ""}${hasA ? " has-alert" : ""}" onclick="focusDev('${id}')">
+      <div class="dev-top"><span class="dev-name" style="color:${c}">${id}</span><div class="online-dot"></div></div>
+      <div class="dev-grid">${cells || '<span style="font-size:11px;color:var(--text-muted)">Reading…</span>'}</div>
+      ${d.gps ? `<div class="dev-gps">📍 ${d.gps.lat?.toFixed(4)}, ${d.gps.lon?.toFixed(4)}</div>` : ""}
+    </div>`;
+      }).join("");
+    }
+    function renderGauges() {
+      const id = S.focusId || Object.keys(S.devices)[0], dev = S.devices[id], el = document.getElementById("gaugeGrid");
+      document.getElementById("focusDev").textContent = id ? `Showing: ${id}` : "Showing average of all devices";
+      if (!dev || !dev.readings) { el.innerHTML = '<div class="waiting">Waiting for sensor data…</div>'; return }
+      el.innerHTML = `<div class="gauge-grid">${Object.entries(dev.readings).map(([k, v]) => {
+        const m = SM[k] || { l: k, u: "", icon: "", max: 100, warn: 80, danger: 95, col: "#3b82f6" };
+        const pct = Math.min(100, (v / m.max) * 100).toFixed(1), col = sc(k, v), s = st(k, v);
+        return `<div class="gauge-item">
+      <div class="gauge-lbl">${m.icon} ${m.l}</div>
+      <div class="gauge-num" style="color:${col}">${v.toFixed(1)}<span class="gu">${m.u}</span></div>
+      <div class="gauge-track"><div class="gauge-fill" style="width:${pct}%;background:${col}"></div></div>
+      <span class="gauge-tag ${s}">${s === "normal" ? "Normal" : s === "warning" ? "Warning" : "Critical"}</span>
+    </div>`;
+      }).join("")}</div>`;
+    }
+    function renderCharts() {
+      const ids = Object.keys(S.history); if (!ids.length) return;
+      const tw = S.wins.temp;
+      tC.data.datasets = ids.map((id, i) => { const h = S.history[id].slice(-tw), { s, f } = pal(i); return { label: id, data: h.map(r => r.temperature), borderColor: s, backgroundColor: f, borderWidth: 2, tension: .4, pointRadius: 0, fill: false } });
+      tC.data.labels = (S.history[ids[0]] || []).slice(-tw).map(r => { const d = r.ts; return d ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}` : "" });
+      tC.update("none");
+      const hw = S.wins.hum;
+      hC.data.datasets = ids.map((id, i) => { const h = S.history[id].slice(-hw), { s, f } = pal(i); return { label: id, data: h.map(r => r.humidity), borderColor: s, backgroundColor: f, borderWidth: 2, tension: .4, pointRadius: 0, fill: false } });
+      hC.data.labels = (S.history[ids[0]] || []).slice(-hw).map(r => { const d = r.ts; return d ? `${String(d.getHours()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}` : "" });
+      hC.update("none");
+      const sk = ["temperature", "humidity", "air_quality", "vibration"].filter(s => ids.some(id => { const h = S.history[id]; return h.length && h[h.length - 1][s] !== undefined }));
+      const bc = ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b"];
+      mC.data.labels = ids;
+      mC.data.datasets = sk.map((s, si) => ({ label: s.replace("_", " "), data: ids.map(id => { const h = S.history[id]; return h.length ? (h[h.length - 1][s] || 0) : 0 }), backgroundColor: bc[si % bc.length] + "cc", borderRadius: 4 }));
+      mC.update("none");
+    }
+    function renderAlerts() {
+      const el = document.getElementById("alertList");
+      document.getElementById("alertBadge").textContent = S.alerts.length;
+      if (!S.alerts.length) { el.innerHTML = '<div class="no-alerts"><div class="ni">✅</div>All systems nominal.<br/>No threshold violations.</div>'; return }
+      el.innerHTML = S.alerts.slice(0, 30).map(a => `<div class="alert-card ${a.severity}">
+    <div class="alert-top"><span class="alert-sev ${a.severity}">${a.severity === "HIGH" ? "🔴 HIGH" : "🟡 MEDIUM"}</span><span class="alert-time">${new Date(a.timestamp).toLocaleTimeString()}</span></div>
+    <div class="alert-dev">${a.device_id}</div>
+    <div class="alert-msg">${SM[a.sensor]?.l || a.sensor} = ${typeof a.value === "number" ? a.value.toFixed(1) : a.value} ${SM[a.sensor]?.u || ""} (limit: ${a.threshold})</div>
+  </div>`).join("");
+    }
+    function renderTelecom() {
+      fetch(`${API}/config`).then(r => r.json()).then(cfg => {
+        const tc = cfg.telecom || {};
+        document.getElementById("tcL").innerHTML = (tc.base_latency_ms || 20) + '<span style="font-size:12px;color:var(--text-muted);font-weight:400"> ms</span>';
+        document.getElementById("tcJ").innerHTML = (tc.jitter_ms || 15) + '<span style="font-size:12px;color:var(--text-muted);font-weight:400"> ms</span>';
+        document.getElementById("tcLs").innerHTML = ((tc.packet_loss_rate || 0) * 100).toFixed(1) + '<span style="font-size:12px;color:var(--text-muted);font-weight:400"> %</span>';
+        document.getElementById("tcS").textContent = S.msgCount;
+        document.getElementById("tcLB").style.width = Math.min(100, (tc.base_latency_ms || 20) / 200 * 100) + "%";
+        document.getElementById("tcLsB").style.width = Math.min(100, (tc.packet_loss_rate || 0) * 500) + "%";
+        document.getElementById("tcSB").style.width = Math.min(100, S.msgCount / 5) + "%";
+        document.getElementById("tcJB").style.width = Math.min(100, (tc.jitter_ms || 15) / 100 * 100) + "%";
+        const loss = (tc.packet_loss_rate || 0) * 100;
+        document.getElementById("tcLsB").style.background = loss > 10 ? "#ef4444" : loss > 5 ? "#f59e0b" : "#22c55e";
+      }).catch(() => { });
+    }
+    // Log
+    function log(msg, type = "ok") {
+      const b = document.getElementById("logBody"), ts = new Date().toLocaleTimeString(), el = document.createElement("div");
+      el.className = `ll ${type}`; el.textContent = `[${ts}]  ${msg}`;
+      b.insertBefore(el, b.firstChild); if (b.children.length > 80) b.removeChild(b.lastChild);
+    }
+    function clearLog() { document.getElementById("logBody").innerHTML = "" }
+    // Clock
+    setInterval(() => { document.getElementById("clock").textContent = new Date().toLocaleTimeString() }, 1000);
+    // Status
+    function setConn(state) {
+      const chip = document.getElementById("connStatus"), lbl = document.getElementById("connLabel");
+      chip.className = "pill " + state;
+      lbl.textContent = state === "connected" ? "Connected" : state === "disconnected" ? "Disconnected" : "Connecting…";
+    }
+    // Focus device
+    function focusDev(id) { S.focusId = id; renderGauges(); renderDevList() }
+    // SSE
+    let sse = null;
+    function connectSSE() {
+      if (sse) sse.close();
+      sse = new EventSource(`${API}/stream`);
+      sse.onopen = () => { setConn("connected"); log("Connected to backend via SSE (Server-Sent Events).", "ok") };
+      sse.onmessage = (e) => {
+        try {
+          const ev = JSON.parse(e.data);
+          if (ev.type === "sensor_update" && ev.payload) {
+            const p = ev.payload, i = Object.keys(S.devices).length;
+            ingest({ device_id: p.device_id, gps: p.gps, readings: p.readings, scenario: p.scenario, alerts: (p.alerts || []).length, last_seen: p.timestamp }, i);
+            render();
+            if (p.alerts?.length) {
+              p.alerts.forEach(a => { S.alerts.unshift({ ...a, device_id: p.device_id, timestamp: p.timestamp }); log(`Alert [${a.severity}] — ${p.device_id} — ${SM[a.sensor]?.l || a.sensor} = ${a.value?.toFixed(1)} (limit ${a.threshold})`, a.severity === "HIGH" ? "error" : "warn") });
+              if (S.alerts.length > 200) S.alerts.length = 200;
+            }
+          }
+        } catch (_) { }
+      };
+      sse.onerror = () => { setConn("disconnected"); log("SSE connection lost — switching to polling…", "warn"); sse.close(); setTimeout(poll, 3000) };
+    }
+    // Polling fallback
+    async function poll() {
+      try {
+        const [dR, aR] = await Promise.all([fetch(`${API}/devices`), fetch(`${API}/alerts?limit=40`)]);
+        if (!dR.ok) throw new Error("Backend not reachable");
+        const dD = await dR.json(), aD = await aR.json();
+        setConn("connected");
+        dD.devices.forEach((d, i) => ingest(d, i));
+        S.alerts = aD.alerts || []; render();
+        if (sse?.readyState !== EventSource.OPEN) connectSSE();
+      } catch (err) { setConn("disconnected"); log(`Cannot reach backend: ${err.message} — Is "node backend\\server.js" running?`, "error") }
+      if (sse?.readyState !== EventSource.OPEN) setTimeout(poll, POLL_MS);
+    }
+    // Config
+    let activeScen = "smart_city";
+    function setScen(name, btn) { activeScen = name; document.querySelectorAll(".scen-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); log(`Scenario changed to: ${name.replace(/_/g, " ")}`, "ok") }
+    async function applyConfig() {
+      const body = { simulation: { interval: parseFloat(document.getElementById("cfgI").value), noise: parseFloat(document.getElementById("cfgN").value), scenario: activeScen }, sensors: { temperature: { min: 18, max: parseInt(document.getElementById("cfgTM").value) }, humidity: { min: 35, max: parseInt(document.getElementById("cfgHM").value) } } };
+      try { const r = await fetch(`${API}/config`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); if (r.ok) log(`Config applied — interval: ${body.simulation.interval}s, scenario: ${activeScen}`, "ok"); else log("Failed to apply config. Is the backend running?", "error") } catch (e) { log(`Config error: ${e.message}`, "error") }
+    }
+    function setW(chart, size, btn) { S.wins[chart] = size; btn.closest(".win-btns").querySelectorAll(".win-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); renderCharts() }
+    // Boot
+    log("Dashboard started. Connecting to localhost:3000…", "ok");
+    setConn("connecting"); connectSSE(); setTimeout(poll, 2000);
+  </script>
+</body>
+
+</html>

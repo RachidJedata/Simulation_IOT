@@ -1,0 +1,68 @@
+{
+  "simulation": {
+    "num_devices": 6,
+    "interval": 2,
+    "scenario": "smart_home",
+    "noise": 0,
+    "mobility": true
+  },
+  "sensors": {
+    "temperature": {
+      "min": 18,
+      "max": 38
+    },
+    "humidity": {
+      "min": 35,
+      "max": 80
+    },
+    "pressure": {
+      "min": 980,
+      "max": 1030,
+      "unit": "hPa"
+    },
+    "air_quality": {
+      "min": 0,
+      "max": 500,
+      "unit": "AQI"
+    },
+    "light": {
+      "min": 0,
+      "max": 1000,
+      "unit": "lux"
+    },
+    "vibration": {
+      "min": 0,
+      "max": 10,
+      "unit": "m/s²"
+    }
+  },
+  "alerts": {
+    "temperature_high": 32,
+    "humidity_high": 75,
+    "air_quality_high": 150,
+    "vibration_high": 7
+  },
+  "mqtt": {
+    "broker": "localhost",
+    "port": 1883,
+    "topic_prefix": "iot/sensors",
+    "qos": 1,
+    "keepalive": 60
+  },
+  "telecom": {
+    "base_latency_ms": 20,
+    "jitter_ms": 15,
+    "packet_loss_rate": 0.03,
+    "bandwidth_kbps": 250
+  },
+  "backend": {
+    "port": 3000,
+    "max_history": 200,
+    "aggregation_window": 10
+  },
+  "gps": {
+    "center_lat": 33.5731,
+    "center_lon": -7.5898,
+    "radius_km": 2
+  }
+}
